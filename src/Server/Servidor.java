@@ -7,6 +7,7 @@ package Server;
 
 import Clients.ServerClient;
 import Constant.ServerCst;
+import DB.StaticConnection;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,7 +33,7 @@ public class Servidor implements Runnable {
         while (true) {
             try {
                 this.ssocket = new ServerSocket(ServerCst.PORT);
-
+                StaticConnection.nueva();
                 while (!ssocket.isClosed()) {
                     System.out.println("Esperando Usuarios");
                     Socket client = this.ssocket.accept();

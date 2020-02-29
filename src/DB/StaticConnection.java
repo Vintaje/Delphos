@@ -24,7 +24,7 @@ public class StaticConnection {
     //Atributo que nos permite ejecutar una sentencia SQL
     private static java.sql.ResultSet Conn_Records;
     //
-    private static final String DB = "USERREST";
+    private static final String DB = "delphos";
     private static final String USER = "root";
     private static final String PWD = "";
     private static final String USER_TB = "usuarios";
@@ -63,7 +63,7 @@ public class StaticConnection {
     public static boolean userLogin(String usuario, String password) {
 
         try {
-            String sentencia = "SELECT * FROM usuarios WHERE nombre = '" + usuario + "' AND password = '" + password + "'";
+            String sentencia = "SELECT * FROM " + USER_TB +" WHERE nombre = '" + usuario + "' AND password = '" + password + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
@@ -75,15 +75,15 @@ public class StaticConnection {
         return false;//Si devolvemos null el usuario no existe.
     }
 
-    public static boolean userExist(User user) {
+    public static boolean userExist(String user) {
         try {
-            String sentencia = "SELECT * FROM usuarios WHERE nombre = '" + user.getName() + "'";
+            String sentencia = "SELECT * FROM " + USER_TB +" WHERE nombre = '" + user + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
                 return true;
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             System.out.println("Error en el acceso a la BD.");
         }
         return false;
@@ -91,7 +91,7 @@ public class StaticConnection {
 
     public static synchronized boolean userRegiser(User user) {
         try {
-            if (!userExist(user)) {
+            if (!userExist(user.getName())) {
                 InsertUser(user);
                 return true;
             }
@@ -115,7 +115,7 @@ public class StaticConnection {
 
     //----------------------------------------------------------
     public static void InsertUser(User user) throws SQLException {
-        String Sentencia = "INSERT INTO " + USER_TB + " VALUES ('" + user.getName() + "', '" + user.getPwd() + "', '" + user.getAddress() + "', '" + user.getAge() + "', " + user.getRol() + ")";
+        String Sentencia = "INSERT INTO " + USER_TB +"(nombre, password, telefono, direccion, edad)"+ " VALUES ('" + user.getName() + "', '" + user.getPwd() + "','"+user.getPhoneNumber()+"', '" + user.getAddress() + "', " + user.getAge() + ")";
         StaticConnection.SQL_Statement.executeUpdate(Sentencia);
     }
 

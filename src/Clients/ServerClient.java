@@ -41,6 +41,14 @@ public class ServerClient implements Runnable {
 
     public void run() {
 
+        while (client.isConnected()) {
+            try {
+                short task = this.receive.readShort();
+                manageTask(task);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     public void manageTask(short task) {
