@@ -5,18 +5,21 @@
  */
 package delphos;
 
+import Server.Servidor;
+
 /**
  *
  * @author vinta
  */
 public class Delphos {
+    
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        
+        new Servidor().start();
     }
     
     
