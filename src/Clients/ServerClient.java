@@ -93,7 +93,9 @@ public class ServerClient implements Runnable {
 
     public void register() throws IOException, ClassNotFoundException {
         User user = (User) this.receive.readObject();
-        this.send.writeBoolean(StaticConnection.userRegiser(user));
+        boolean response = StaticConnection.userRegiser(user);
+        System.out.println(response);
+        this.send.writeObject(response);
     }
 
     public void login() {

@@ -30,21 +30,17 @@ public class Servidor implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
-            try {
-                this.ssocket = new ServerSocket(ServerCst.PORT);
-                StaticConnection.nueva();
-                while (!ssocket.isClosed()) {
-                    System.out.println("Esperando Usuarios");
-                    Socket client = this.ssocket.accept();
-                    new ServerClient(client).start();
-                }
-            } catch (IOException ex) {
-                this.ssocket = null;
-
-                Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            this.ssocket = new ServerSocket(ServerCst.PORT);
+            StaticConnection.nueva();
+            while (!ssocket.isClosed()) {
+                System.out.println("Esperando Usuarios");
+                Socket client = this.ssocket.accept();
+                new ServerClient(client).start();
             }
+        } catch (IOException ex) {
             this.ssocket = null;
+            Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
