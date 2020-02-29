@@ -40,8 +40,11 @@ public class Servidor implements Runnable {
                     new ServerClient(client).start();
                 }
             } catch (IOException ex) {
+                this.ssocket = null;
+
                 Logger.getLogger(Servidor.class.getName()).log(Level.SEVERE, null, ex);
             }
+            this.ssocket = null;
         }
 
     }
