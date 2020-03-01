@@ -11,7 +11,8 @@ import java.io.Serializable;
  *
  * @author vinta
  */
-public class User implements Serializable{
+public class User implements Serializable {
+
     private int id;
     private String name;
     private String pwd;
@@ -19,8 +20,14 @@ public class User implements Serializable{
     private String address;
     private int age;
     private byte rol;
-    
-    public User(){}
+
+    public User() {
+    }
+
+    public User(String name, String pwd) {
+        this.name = name;
+        this.pwd = pwd;
+    }
 
     public User(int id, String name, String pwd, String phoneNumber, String address, int age, byte rol) {
         this.id = id;
@@ -39,9 +46,7 @@ public class User implements Serializable{
         this.address = address;
         this.age = age;
     }
-    
-    
-    
+
     @Override
     public String toString() {
         return "User{" + "id=" + id + ", name=" + name + ", pwd=" + pwd + ", address=" + address + ", age=" + age + ", rol=" + rol + '}';
@@ -102,6 +107,5 @@ public class User implements Serializable{
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-    
-    
+
 }

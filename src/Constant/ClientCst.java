@@ -19,5 +19,6 @@ public class ClientCst {
     public final static short EDIT_GRADE = 6;
     public final static short SET_MARKS = 7;
     public final static short GET_MARKS = 8;
+    public final static short GET_USERS = 9;
     
 }

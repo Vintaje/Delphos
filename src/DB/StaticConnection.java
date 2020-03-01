@@ -60,24 +60,26 @@ public class StaticConnection {
         }
     }
 
-    public static boolean userLogin(String usuario, String password) {
+    public static byte userLogin(String usuario, String password) {
 
         try {
-            String sentencia = "SELECT * FROM " + USER_TB +" WHERE nombre = '" + usuario + "' AND password = '" + password + "'";
+            String sentencia = "SELECT user.id, roles.id_rol FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE user.id=roles.id_usuario AND nombre = '" + usuario + "' AND password = '" + password + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
+
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
-                return true;
+                System.out.println("Hay Cosas");
+                return (byte) Conn_Records.getInt(2);
             }
         } catch (SQLException ex) {
             System.out.println("Error en el acceso a la BD.");
         }
-        return false;//Si devolvemos null el usuario no existe.
+        return -1;//Si devolvemos null el usuario no existe.
     }
 
-    public static boolean userExist(String user) {
+    public static synchronized boolean userExist(String user) {
         try {
-            String sentencia = "SELECT * FROM " + USER_TB +" WHERE nombre = '" + user + "'";
+            String sentencia = "SELECT * FROM " + USER_TB + " WHERE nombre = '" + user + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
@@ -101,7 +103,25 @@ public class StaticConnection {
         return false;
     }
 
-    
+    public static synchronized ArrayList<User> usersList() {
+        ArrayList<User> users = new ArrayList<>();
+        
+        try {
+            String sentencia = "SELECT user.id, user.nombre, user.password, user.telefono, user.direccion, user.edad, roles.id_rol FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE roles.id_usuario = user.id";
+            StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
+
+            while (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
+            {
+                User user = new User(Conn_Records.getInt("user.id"), Conn_Records.getString("user.nombre"), Conn_Records.getString("user.password"),
+                Conn_Records.getString("user.telefono"), Conn_Records.getString("user.direccion"), Conn_Records.getInt("user.edad"), (byte)Conn_Records.getInt("roles.id_rol"));
+                users.add(user);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error en el acceso a la BD.");
+        }
+        return users;
+    }
+
     public static void Borrar_Dato(String tabla, String DNI) throws SQLException {
         String Sentencia = "DELETE FROM " + tabla + " WHERE username = '" + DNI + "'";
         StaticConnection.SQL_Statement.executeUpdate(Sentencia);
@@ -115,7 +135,8 @@ public class StaticConnection {
 
     //----------------------------------------------------------
     public static void InsertUser(User user) throws SQLException {
-        String Sentencia = "INSERT INTO " + USER_TB +"(nombre, password, telefono, direccion, edad)"+ " VALUES ('" + user.getName() + "', '" + user.getPwd() + "','"+user.getPhoneNumber()+"', '" + user.getAddress() + "', " + user.getAge() + ")";
+        String Sentencia = "INSERT INTO " + USER_TB + "(nombre, password, telefono, direccion, edad)"
+                + " VALUES ('" + user.getName() + "', '" + user.getPwd() + "','" + user.getPhoneNumber() + "', '" + user.getAddress() + "', " + user.getAge() + ")";
         StaticConnection.SQL_Statement.executeUpdate(Sentencia);
     }
 

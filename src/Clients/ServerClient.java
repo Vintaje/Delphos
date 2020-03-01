@@ -12,6 +12,7 @@ import Models.User;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 /**
  *
@@ -28,7 +29,6 @@ public class ServerClient implements Runnable {
     }
 
     public ServerClient(Socket client) {
-
         this.tClient = new Thread(this);
         this.client = client;
         try {
@@ -42,12 +42,15 @@ public class ServerClient implements Runnable {
     public void run() {
 
         while (client.isConnected()) {
+            short task = -1;
             try {
-                short task = this.receive.readShort();
-                manageTask(task);
+                task = (short) this.receive.readObject();
+                this.send.flush();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            manageTask(task);
+
         }
     }
 
@@ -76,8 +79,13 @@ public class ServerClient implements Runnable {
                     editGrade();
                     break;
                 case ClientCst.SET_MARKS:
+                    setMarks();
                     break;
                 case ClientCst.GET_MARKS:
+                    getMarks();
+                    break;
+                case ClientCst.GET_USERS:
+                    getUsers();
                     break;
 
             }
@@ -96,9 +104,16 @@ public class ServerClient implements Runnable {
         boolean response = StaticConnection.userRegiser(user);
         System.out.println(response);
         this.send.writeObject(response);
+
     }
 
-    public void login() {
+    public void login() throws IOException, ClassNotFoundException {
+
+        User user = (User) this.receive.readObject();
+        byte response = StaticConnection.userLogin(user.getName(), user.getPwd());
+
+        this.send.writeObject(response);
+
     }
 
     public void activateUser() {
@@ -120,6 +135,17 @@ public class ServerClient implements Runnable {
     }
 
     public void getMarks() {
+    }
+
+    public void getUsers() {
+        try {
+            ArrayList<User> users = StaticConnection.usersList();
+            System.out.println(users.size());
+            this.send.writeObject(users);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 }
