@@ -8,6 +8,7 @@ package Clients;
 import java.net.Socket;
 import Constant.ClientCst;
 import DB.StaticConnection;
+import Models.Grade;
 import Models.User;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -44,7 +45,7 @@ public class ServerClient implements Runnable {
 
         while (client.isConnected()) {
             short task = -1;
-            System.out.println("Cliente: "+client.getInetAddress()+" A la espera de Ordenes");
+            System.out.println("Cliente: " + client.getInetAddress() + " A la espera de Ordenes");
             try {
                 task = (short) this.receive.readObject();
 
@@ -92,6 +93,12 @@ public class ServerClient implements Runnable {
                     break;
                 case ClientCst.GET_ROLES:
                     getRoles();
+                    break;
+                case ClientCst.GET_GRADES:
+                    getGrades();
+                    break;
+                case ClientCst.DEL_GRADE:
+                    delGrade();
                     break;
 
             }
@@ -166,6 +173,18 @@ public class ServerClient implements Runnable {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void getGrades() {
+        try {
+            ArrayList<Grade> grades = StaticConnection.getGrades();
+            this.send.writeObject(grades);
+            System.out.println("Grades enviados");
+        } catch (Exception ex) {
+        }
+    }
+
+    private void delGrade() {
     }
 
 }

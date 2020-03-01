@@ -5,6 +5,7 @@
  */
 package DB;
 
+import Models.Grade;
 import Models.User;
 import java.sql.*;
 import java.util.HashMap;
@@ -117,6 +118,22 @@ public class StaticConnection {
             System.out.println("Error en el acceso a la BD.");
         }
         return -1;//Si devolvemos null el usuario no existe.
+    }
+    
+    public static synchronized ArrayList<Grade> getGrades(){
+        ArrayList<Grade> grades = new ArrayList<>();
+        String sentence = "SELECT * FROM "+GRADE_TB+"";
+        
+        try{
+            StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentence);
+            while(StaticConnection.Conn_Records.next()){
+            grades.add(new Grade(Conn_Records.getInt("IDCURSO"), Conn_Records.getString("CODIGO"), Conn_Records.getString("NOMBRE")));
+            }
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        System.out.println(grades.size());
+        return grades;
     }
 
     public static synchronized ArrayList<User> usersList() {
