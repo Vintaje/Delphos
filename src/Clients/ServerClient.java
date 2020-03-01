@@ -12,6 +12,7 @@ import Models.User;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -43,12 +44,14 @@ public class ServerClient implements Runnable {
 
         while (client.isConnected()) {
             short task = -1;
+            System.out.println("Cliente: "+client.getInetAddress()+" A la espera de Ordenes");
             try {
                 task = (short) this.receive.readObject();
-                this.send.flush();
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            System.out.println(task);
             manageTask(task);
 
         }
@@ -87,6 +90,9 @@ public class ServerClient implements Runnable {
                 case ClientCst.GET_USERS:
                     getUsers();
                     break;
+                case ClientCst.GET_ROLES:
+                    getRoles();
+                    break;
 
             }
         } catch (Exception ex) {
@@ -116,7 +122,11 @@ public class ServerClient implements Runnable {
 
     }
 
-    public void activateUser() {
+    public void activateUser() throws IOException, ClassNotFoundException, SQLException {
+        User user = (User) this.receive.readObject();
+        System.out.println(user);
+        StaticConnection.ModifyRole(user);
+        this.send.writeObject(true);
     }
 
     public void setUserRol() {
@@ -143,6 +153,16 @@ public class ServerClient implements Runnable {
             System.out.println(users.size());
             this.send.writeObject(users);
 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void getRoles() {
+        try {
+            ArrayList<String> roles = StaticConnection.getRoles();
+            this.send.writeObject(roles);
+            System.out.println("Roles Enviados");
         } catch (Exception ex) {
             ex.printStackTrace();
         }

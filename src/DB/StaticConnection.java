@@ -103,9 +103,25 @@ public class StaticConnection {
         return false;
     }
 
+    public static synchronized int getUserId(String usuario) {
+        try {
+            String sentencia = "SELECT user.id FROM " + USER_TB + " user WHERE nombre = '" + usuario + "'";
+            StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
+
+            if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
+            {
+                System.out.println("Hay Cosas");
+                return (int) Conn_Records.getInt(1);
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error en el acceso a la BD.");
+        }
+        return -1;//Si devolvemos null el usuario no existe.
+    }
+
     public static synchronized ArrayList<User> usersList() {
         ArrayList<User> users = new ArrayList<>();
-        
+
         try {
             String sentencia = "SELECT user.id, user.nombre, user.password, user.telefono, user.direccion, user.edad, roles.id_rol FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE roles.id_usuario = user.id";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
@@ -113,7 +129,7 @@ public class StaticConnection {
             while (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
                 User user = new User(Conn_Records.getInt("user.id"), Conn_Records.getString("user.nombre"), Conn_Records.getString("user.password"),
-                Conn_Records.getString("user.telefono"), Conn_Records.getString("user.direccion"), Conn_Records.getInt("user.edad"), (byte)Conn_Records.getInt("roles.id_rol"));
+                        Conn_Records.getString("user.telefono"), Conn_Records.getString("user.direccion"), Conn_Records.getInt("user.edad"), (byte) Conn_Records.getInt("roles.id_rol"));
                 users.add(user);
             }
         } catch (SQLException ex) {
@@ -128,16 +144,34 @@ public class StaticConnection {
     }
 
     //----------------------------------------------------------
-    public static void Modificar_Dato(String tabla, String DNI, String Nuevo_Nombre) throws SQLException {
-        String Sentencia = "UPDATE " + tabla + " SET Nombre = '" + Nuevo_Nombre + "' WHERE DNI = '" + DNI + "'";
+    public synchronized static void ModifyRole(User user) throws SQLException {
+        String Sentencia = "UPDATE " + ROLRELATION_TB + " SET id_rol = " + user.getRol() + " WHERE id_usuario = " + user.getId();
         StaticConnection.SQL_Statement.executeUpdate(Sentencia);
     }
 
     //----------------------------------------------------------
-    public static void InsertUser(User user) throws SQLException {
+    public synchronized static void InsertUser(User user) throws SQLException {
         String Sentencia = "INSERT INTO " + USER_TB + "(nombre, password, telefono, direccion, edad)"
                 + " VALUES ('" + user.getName() + "', '" + user.getPwd() + "','" + user.getPhoneNumber() + "', '" + user.getAddress() + "', " + user.getAge() + ")";
         StaticConnection.SQL_Statement.executeUpdate(Sentencia);
+        int id = getUserId(user.getName());
+        Sentencia = "INSERT INTO " + ROLRELATION_TB + " (id_rol, id_usuario) VALUES(0," + id + ")";
+        StaticConnection.SQL_Statement.executeUpdate(Sentencia);
+    }
+
+    public static ArrayList<String> getRoles() {
+        ArrayList<String> roles = new ArrayList<>();
+        try {
+            
+            String Sentencia = "SELECT DESCRPICION FROM ROL";
+            Conn_Records = StaticConnection.SQL_Statement.executeQuery(Sentencia);
+            while (Conn_Records.next()) {
+                roles.add(Conn_Records.getString("DESCRPICION"));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return roles;
     }
 
 }
