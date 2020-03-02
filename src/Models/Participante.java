@@ -9,13 +9,13 @@ package Models;
  *
  * @author vinta
  */
-public class Student extends User{
+public class Participante extends User{
     private int idgrade;
 
-    public Student() {
+    public Participante() {
     }
 
-    public Student(int idgrade, int id, String name, String pwd, String phoneNumber, String address, int age, byte rol) {
+    public Participante(int idgrade, int id, String name, String pwd, String phoneNumber, String address, int age, byte rol) {
         super(id, name, pwd, phoneNumber, address, age, rol);
         this.idgrade = idgrade;
     }

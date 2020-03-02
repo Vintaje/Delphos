@@ -9,6 +9,7 @@ import java.net.Socket;
 import Constant.ClientCst;
 import DB.StaticConnection;
 import Models.Grade;
+import Models.Participante;
 import Models.User;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -158,7 +159,16 @@ public class ServerClient implements Runnable {
         this.send.writeObject(res);
     }
 
-    public void setGrade() {
+    public void setGrade() throws IOException, ClassNotFoundException {
+        Participante student = (Participante) this.receive.readObject();
+        System.out.println(student);
+        boolean res = false;
+        if (student.getRol() == 1) {
+            res = StaticConnection.asignarCurso(student);
+        } else if (student.getRol() == 2) {
+            res = StaticConnection.asignarProfesor(student);
+        }
+        this.send.writeObject(res);
     }
 
     public void editGrade() throws IOException, ClassNotFoundException {
@@ -168,7 +178,8 @@ public class ServerClient implements Runnable {
         this.send.writeObject(res);
     }
 
-    public void setMarks() {
+    public void setMarks() throws IOException, ClassNotFoundException {
+
     }
 
     public void getMarks() {

@@ -6,7 +6,7 @@
 package DB;
 
 import Models.Grade;
-import Models.Student;
+import Models.Participante;
 import Models.User;
 import java.sql.*;
 import java.util.HashMap;
@@ -186,7 +186,7 @@ public class StaticConnection {
         return actualizado;
     }
 
-    public static synchronized boolean asignarCurso(Student student) {
+    public static synchronized boolean asignarCurso(Participante student) {
         boolean registrado = false;
         String sql = "INSERT INTO " + StaticConnection.STUDENT_TB + " VALUES ( "
                 + student.getId() + ", " + student.getIdgrade() + ")";
@@ -201,10 +201,10 @@ public class StaticConnection {
         return registrado;
     }
 
-    public static synchronized boolean asignarProfesor(User user, int idGrade) {
+    public static synchronized boolean asignarProfesor(Participante participante) {
         boolean registrado = false;
         String sql = "INSERT INTO " + StaticConnection.TEACHER_TB + " (COD_PROFESOR, COD_CURSO) VALUES ( "
-                + user.getId() + ", " + idGrade + ")";
+                + participante.getId() + ", " + participante.getIdgrade() + ")";
         System.out.println(sql);
         try {
             if (SQL_Statement.executeUpdate(sql) == 1) {
