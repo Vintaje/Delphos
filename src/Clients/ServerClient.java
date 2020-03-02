@@ -13,8 +13,11 @@ import Models.User;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.SocketException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -43,18 +46,27 @@ public class ServerClient implements Runnable {
 
     public void run() {
 
-        while (client.isConnected()) {
-            short task = -1;
-            System.out.println("Cliente: " + client.getInetAddress() + " A la espera de Ordenes");
-            try {
+        try {
+            while (client.isConnected()) {
+                short task;
+                System.out.println("Cliente: " + client.getInetAddress() + " A la espera de Ordenes");
+
                 task = (short) this.receive.readObject();
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            System.out.println(task);
-            manageTask(task);
+                System.out.println(task);
+                manageTask(task);
 
+            }
+        } catch (Exception ex) {
+            closeConnection();
+        }
+    }
+
+    public void closeConnection() {
+        try {
+            client.close();
+        } catch (IOException ex1) {
+            Logger.getLogger(ServerClient.class.getName()).log(Level.SEVERE, null, ex1);
         }
     }
 
@@ -139,13 +151,21 @@ public class ServerClient implements Runnable {
     public void setUserRol() {
     }
 
-    public void addGrade() {
+    public void addGrade() throws IOException, ClassNotFoundException {
+        Grade grade = (Grade) this.receive.readObject();
+        System.out.println(grade);
+        boolean res = StaticConnection.insertarCurso(grade);
+        this.send.writeObject(res);
     }
 
     public void setGrade() {
     }
 
-    public void editGrade() {
+    public void editGrade() throws IOException, ClassNotFoundException {
+        Grade grade = (Grade) this.receive.readObject();
+        System.out.println(grade);
+        boolean res = StaticConnection.actualizarCurso(grade);
+        this.send.writeObject(res);
     }
 
     public void setMarks() {

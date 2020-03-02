@@ -6,6 +6,7 @@
 package DB;
 
 import Models.Grade;
+import Models.Student;
 import Models.User;
 import java.sql.*;
 import java.util.HashMap;
@@ -119,17 +120,17 @@ public class StaticConnection {
         }
         return -1;//Si devolvemos null el usuario no existe.
     }
-    
-    public static synchronized ArrayList<Grade> getGrades(){
+
+    public static synchronized ArrayList<Grade> getGrades() {
         ArrayList<Grade> grades = new ArrayList<>();
-        String sentence = "SELECT * FROM "+GRADE_TB+"";
-        
-        try{
+        String sentence = "SELECT * FROM " + GRADE_TB + "";
+
+        try {
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentence);
-            while(StaticConnection.Conn_Records.next()){
-            grades.add(new Grade(Conn_Records.getInt("IDCURSO"), Conn_Records.getString("CODIGO"), Conn_Records.getString("NOMBRE")));
+            while (StaticConnection.Conn_Records.next()) {
+                grades.add(new Grade(Conn_Records.getInt("IDCURSO"), Conn_Records.getString("CODIGO"), Conn_Records.getString("NOMBRE")));
             }
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         System.out.println(grades.size());
@@ -150,9 +151,69 @@ public class StaticConnection {
                 users.add(user);
             }
         } catch (SQLException ex) {
-            System.out.println("Error en el acceso a la BD.");
+            System.out.println("Error en el acc   eso a la BD.");
         }
         return users;
+    }
+
+    public static synchronized boolean insertarCurso(Grade grade) {
+        boolean registrado = false;
+        String sql = "INSERT INTO " + StaticConnection.GRADE_TB + " (CODIGO, NOMBRE) VALUES ( '"
+                + grade.getCode() + "', '" + grade.getName() + "')";
+        System.out.println(sql);
+        try {
+            if (SQL_Statement.executeUpdate(sql) == 1) {
+                registrado = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return registrado;
+    }
+
+    public static synchronized boolean actualizarCurso(Grade grade) {
+        boolean actualizado = false;
+        String sql = "UPDATE " + StaticConnection.GRADE_TB + " SET CODIGO = '" + grade.getCode()
+                + "', NOMBRE = '" + grade.getName() + "' WHERE IDCURSO = " + grade.getId();
+        System.out.println(sql);
+        try {
+            if (SQL_Statement.executeUpdate(sql) == 1) {
+                actualizado = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return actualizado;
+    }
+
+    public static synchronized boolean asignarCurso(Student student) {
+        boolean registrado = false;
+        String sql = "INSERT INTO " + StaticConnection.STUDENT_TB + " VALUES ( "
+                + student.getId() + ", " + student.getIdgrade() + ")";
+        System.out.println(sql);
+        try {
+            if (SQL_Statement.executeUpdate(sql) == 1) {
+                registrado = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return registrado;
+    }
+
+    public static synchronized boolean asignarProfesor(User user, int idGrade) {
+        boolean registrado = false;
+        String sql = "INSERT INTO " + StaticConnection.TEACHER_TB + " (COD_PROFESOR, COD_CURSO) VALUES ( "
+                + user.getId() + ", " + idGrade + ")";
+        System.out.println(sql);
+        try {
+            if (SQL_Statement.executeUpdate(sql) == 1) {
+                registrado = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return registrado;
     }
 
     public static void Borrar_Dato(String tabla, String DNI) throws SQLException {
@@ -179,7 +240,7 @@ public class StaticConnection {
     public static ArrayList<String> getRoles() {
         ArrayList<String> roles = new ArrayList<>();
         try {
-            
+
             String Sentencia = "SELECT DESCRPICION FROM ROL";
             Conn_Records = StaticConnection.SQL_Statement.executeQuery(Sentencia);
             while (Conn_Records.next()) {

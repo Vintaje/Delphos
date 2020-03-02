@@ -33,7 +33,7 @@ public class Servidor implements Runnable {
         try {
             this.ssocket = new ServerSocket(ServerCst.PORT);
             StaticConnection.nueva();
-            while (!ssocket.isClosed()) {
+            while (true) {
                 System.out.println("Esperando Usuarios");
                 Socket client = this.ssocket.accept();
                 new ServerClient(client).start();

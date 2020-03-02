@@ -11,7 +11,8 @@ import java.io.Serializable;
  *
  * @author vinta
  */
-public class Grade implements Serializable{
+public class Grade implements Serializable {
+
     private int id;
     private String code;
     private String name;
@@ -46,12 +47,14 @@ public class Grade implements Serializable{
         this.name = name;
     }
 
+    public Grade(String code, String name) {
+        this.code = code;
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return "Codigo: " + code + ", Nombre: " + name;
     }
 
-
-    
-    
 }
