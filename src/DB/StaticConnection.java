@@ -6,6 +6,7 @@
 package DB;
 
 import Models.Grade;
+import Models.Mark;
 import Models.Participante;
 import Models.User;
 import java.sql.*;
@@ -62,21 +63,26 @@ public class StaticConnection {
         }
     }
 
-    public static byte userLogin(String usuario, String password) {
-
+    public static User userLogin(String usuario, String password) {
+        User user = new User();
         try {
             String sentencia = "SELECT user.id, roles.id_rol FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE user.id=roles.id_usuario AND nombre = '" + usuario + "' AND password = '" + password + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
 
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
             {
-                System.out.println("Hay Cosas");
-                return (byte) Conn_Records.getInt(2);
+
+                user.setId(Conn_Records.getInt(1));
+                user.setRol((byte) Conn_Records.getInt(2));
+
+                return user;
+            } else {
+                user.setRol((byte) -1);
             }
         } catch (SQLException ex) {
             System.out.println("Error en el acceso a la BD.");
         }
-        return -1;//Si devolvemos null el usuario no existe.
+        return user;//Si devolvemos null el usuario no existe.
     }
 
     public static synchronized boolean userExist(String user) {
@@ -252,4 +258,94 @@ public class StaticConnection {
         return roles;
     }
 
+    public static ArrayList<Grade> listarGradesProfesor(int idProfesor) {
+        ArrayList<Grade> listaGrades = new ArrayList<>();
+        String sql = "SELECT C.IDCURSO, C.CODIGO, C.NOMBRE FROM " + GRADE_TB + " C, " + TEACHER_TB + " I"
+                + " WHERE C.IDCURSO = I.COD_CURSO AND I.COD_PROFESOR = " + idProfesor;
+        try {
+            Conn_Records = SQL_Statement.executeQuery(sql);
+            while (Conn_Records.next()) {
+                Grade curso = new Grade();
+                curso.setId(Conn_Records.getInt(1));
+                curso.setCode(Conn_Records.getString(2));
+                curso.setName(Conn_Records.getString(3));
+                listaGrades.add(curso);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listaGrades;
+    }
+
+    public static ArrayList<Participante> listarParticipantesCurso(int idCurso) {
+        ArrayList<Participante> listaParticipantes = new ArrayList<>();
+        String sql = "SELECT U.ID, U.NOMBRE FROM " + USER_TB + " U, " + STUDENT_TB + " A "
+                + " WHERE A.IDCURSO = " + idCurso + " AND  A.ID = U.ID";
+        try {
+            Conn_Records = SQL_Statement.executeQuery(sql);
+            while (Conn_Records.next()) {
+                Participante aux = new Participante();
+                aux.setId(Conn_Records.getInt(1));
+                aux.setName(Conn_Records.getString(2));
+                listaParticipantes.add(aux);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listaParticipantes;
+    }
+
+    public static synchronized boolean ponerNota(Mark nota) {
+        boolean puesta = false;
+        String sql = "INSERT INTO " + MARKS_TB + " (COD_ALUMNO, COD_PROFESOR, NOTA) VALUES ( "
+                + nota.getCod_student() + ", " + nota.getCod_teacher() + ", " + nota.getMark() + ")";
+        try {
+            if (SQL_Statement.executeUpdate(sql) == 1) {
+                puesta = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return puesta;
+    }
+
+    public static ArrayList<User> listarProfesoresAlumno(int id) {
+        ArrayList<User> listaUsers = new ArrayList<>();
+        String sql = "SELECT * FROM " + USER_TB + " U, " + TEACHER_TB + " I WHERE I.COD_CURSO = (SELECT IDCURSO FROM ALUMNO WHERE ID = " + id + " ) AND U.ID = I.COD_PROFESOR ";
+        try {
+            Conn_Records = SQL_Statement.executeQuery(sql);
+            while (Conn_Records.next()) {
+                User usuario = new User();
+                usuario.setId(Conn_Records.getInt(1));
+                usuario.setName(Conn_Records.getString(2));
+                usuario.setPwd(Conn_Records.getString(3));
+                usuario.setPhoneNumber(Conn_Records.getString(4));
+                usuario.setAddress(Conn_Records.getString(5));
+                usuario.setAge(Conn_Records.getInt(6));
+                listaUsers.add(usuario);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listaUsers;
+    }
+
+    public static Mark consultarMark(Mark nota) {
+        Mark aux = null;
+        String sql = "SELECT * FROM " + MARKS_TB + " WHERE COD_ALUMNO = " + nota.getCod_student() + " AND COD_PROFESOR = " + nota.getCod_teacher();
+        try {
+            Conn_Records = SQL_Statement.executeQuery(sql);
+            if (Conn_Records.next()) {
+                aux = new Mark();
+                aux.setId(Conn_Records.getInt(1));
+                aux.setCod_student(Conn_Records.getInt(2));
+                aux.setCod_teacher(Conn_Records.getInt(3));
+                aux.setMark(Conn_Records.getFloat(4));
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return aux;
+    }
 }

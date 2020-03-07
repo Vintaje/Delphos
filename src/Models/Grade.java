@@ -17,6 +17,9 @@ public class Grade implements Serializable {
     private String code;
     private String name;
 
+    public Grade() {
+    }
+
     public int getId() {
         return id;
     }

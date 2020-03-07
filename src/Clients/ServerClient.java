@@ -9,6 +9,7 @@ import java.net.Socket;
 import Constant.ClientCst;
 import DB.StaticConnection;
 import Models.Grade;
+import Models.Mark;
 import Models.Participante;
 import Models.User;
 import java.io.IOException;
@@ -113,6 +114,15 @@ public class ServerClient implements Runnable {
                 case ClientCst.DEL_GRADE:
                     delGrade();
                     break;
+                case ClientCst.GET_MY_GRADES:
+                    getMyGrades();
+                    break;
+                case ClientCst.GET_MY_STUDENTS:
+                    getMyStudents();
+                    break;
+                case ClientCst.GET_MY_TEACHERS:
+                    getMyTeachers();
+                    break;
 
             }
         } catch (Exception ex) {
@@ -136,7 +146,7 @@ public class ServerClient implements Runnable {
     public void login() throws IOException, ClassNotFoundException {
 
         User user = (User) this.receive.readObject();
-        byte response = StaticConnection.userLogin(user.getName(), user.getPwd());
+        User response = StaticConnection.userLogin(user.getName(), user.getPwd());
 
         this.send.writeObject(response);
 
@@ -179,10 +189,22 @@ public class ServerClient implements Runnable {
     }
 
     public void setMarks() throws IOException, ClassNotFoundException {
-
+        Mark mark = (Mark) this.receive.readObject();
+        System.out.println(mark);
+        boolean res = StaticConnection.ponerNota(mark);
+        this.send.writeObject(res);
     }
 
     public void getMarks() {
+        try {
+            Object obj = this.receive.readObject();
+            Mark mark = (Mark) obj;
+            
+            Mark mres = StaticConnection.consultarMark(mark);
+            this.send.writeObject(mres);
+        } catch (Exception ex) {
+
+        }
     }
 
     public void getUsers() {
@@ -216,6 +238,41 @@ public class ServerClient implements Runnable {
     }
 
     private void delGrade() {
+    }
+
+    private void getMyGrades() {
+        try {
+            int id_user = (int) this.receive.readObject();
+            ArrayList<Grade> grades = StaticConnection.listarGradesProfesor(id_user);
+            this.send.writeObject(grades);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void getMyStudents() {
+        try {
+            Object obj = this.receive.readObject();
+            int grade = (int) obj;
+            ArrayList<Participante> students = StaticConnection.listarParticipantesCurso(grade);
+            this.send.writeObject(students);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void getMyTeachers() {
+        try {
+            Object obj = this.receive.readObject();
+            int id = (int) obj;
+            ArrayList<User> teachers = StaticConnection.listarProfesoresAlumno(id);
+            this.send.writeObject(teachers);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
 }
