@@ -197,6 +197,7 @@ public class StaticConnection {
 
     public static synchronized boolean asignarCurso(Participante student) {
         boolean registrado = false;
+
         String sql = "INSERT INTO " + StaticConnection.STUDENT_TB + " VALUES ( "
                 + student.getId() + ", " + student.getIdgrade() + ")";
         System.out.println(sql);
@@ -204,8 +205,16 @@ public class StaticConnection {
             if (SQL_Statement.executeUpdate(sql) == 1) {
                 registrado = true;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            try {
+                sql = "UPDATE " + STUDENT_TB + " SET IDCURSO = " + student.getIdgrade() + " WHERE ID=" + student.getId();
+                if (SQL_Statement.executeUpdate(sql) == 1) {
+                    registrado = true;
+                }
+                ex.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return registrado;
     }
