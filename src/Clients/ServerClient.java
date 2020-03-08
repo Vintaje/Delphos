@@ -12,14 +12,19 @@ import Models.Grade;
 import Models.Mark;
 import Models.Participante;
 import Models.User;
+import Server.Security;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
+import java.security.InvalidKeyException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -31,6 +36,7 @@ public class ServerClient implements Runnable {
     private Socket client;
     private ObjectInputStream receive;
     private ObjectOutputStream send;
+    private SecretKey secretKey;
 
     public ServerClient() {
     }
@@ -50,7 +56,7 @@ public class ServerClient implements Runnable {
 
         try {
             while (client.isConnected()) {
-                short task;
+                short task = -1;
                 System.out.println("Cliente: " + client.getInetAddress() + " A la espera de Ordenes");
 
                 task = (short) this.receive.readObject();
@@ -60,6 +66,7 @@ public class ServerClient implements Runnable {
 
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             closeConnection();
         }
     }
@@ -140,37 +147,50 @@ public class ServerClient implements Runnable {
         boolean response = StaticConnection.userRegiser(user);
         System.out.println(response);
         this.send.writeObject(response);
-
+        this.send.flush();
     }
 
     public void login() throws IOException, ClassNotFoundException {
 
         User user = (User) this.receive.readObject();
+
+        System.out.println(user);
         User response = StaticConnection.userLogin(user.getName(), user.getPwd());
-
+        System.out.println(response.getSecretKey());
+        if (response.getRol() != -1) {
+            this.secretKey = response.getSecretKey();
+        }
+        System.out.println(response);
         this.send.writeObject(response);
-
+        System.out.println(response);
+        this.send.flush();
     }
 
-    public void activateUser() throws IOException, ClassNotFoundException, SQLException {
-        User user = (User) this.receive.readObject();
-        System.out.println(user);
+    public void activateUser() throws IOException, ClassNotFoundException, SQLException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
+
+        User user = (User) Security.descifrar(this.secretKey, this.receive.readObject());
+        System.out.println("Modify: "+user);
         StaticConnection.ModifyRole(user);
-        this.send.writeObject(true);
+
+        Object obj = Security.cifrarConClaveSimetrica(true, this.secretKey);
+        this.send.writeObject(obj);
+        this.send.flush();
     }
 
     public void setUserRol() {
     }
 
-    public void addGrade() throws IOException, ClassNotFoundException {
-        Grade grade = (Grade) this.receive.readObject();
+    public void addGrade() throws IOException, ClassNotFoundException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
+        Grade grade = (Grade) Security.descifrar(this.secretKey, this.receive.readObject());
         System.out.println(grade);
         boolean res = StaticConnection.insertarCurso(grade);
-        this.send.writeObject(res);
+        Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+        this.send.writeObject(obj);
+        this.send.flush();
     }
 
-    public void setGrade() throws IOException, ClassNotFoundException {
-        Participante student = (Participante) this.receive.readObject();
+    public void setGrade() throws IOException, ClassNotFoundException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
+        Participante student = (Participante) Security.descifrar(this.secretKey, this.receive.readObject());
         System.out.println(student);
         boolean res = false;
         if (student.getRol() == 1) {
@@ -178,30 +198,38 @@ public class ServerClient implements Runnable {
         } else if (student.getRol() == 2) {
             res = StaticConnection.asignarProfesor(student);
         }
-        this.send.writeObject(res);
+        Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+        this.send.writeObject(obj);
+        this.send.flush();
     }
 
-    public void editGrade() throws IOException, ClassNotFoundException {
-        Grade grade = (Grade) this.receive.readObject();
+    public void editGrade() throws IOException, ClassNotFoundException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
+        Grade grade = (Grade) Security.descifrar(this.secretKey, this.receive.readObject());
         System.out.println(grade);
         boolean res = StaticConnection.actualizarCurso(grade);
-        this.send.writeObject(res);
+        Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+        this.send.writeObject(obj);
+        this.send.flush();
     }
 
-    public void setMarks() throws IOException, ClassNotFoundException {
-        Mark mark = (Mark) this.receive.readObject();
+    public void setMarks() throws IOException, ClassNotFoundException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
+        Mark mark = (Mark) Security.descifrar(this.secretKey, this.receive.readObject());
         System.out.println(mark);
         boolean res = StaticConnection.ponerNota(mark);
-        this.send.writeObject(res);
+        Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+        this.send.writeObject(obj);
+        this.send.flush();
     }
 
     public void getMarks() {
         try {
-            Object obj = this.receive.readObject();
+            Object obj = Security.descifrar(this.secretKey, this.receive.readObject());
             Mark mark = (Mark) obj;
-            
-            Mark mres = StaticConnection.consultarMark(mark);
-            this.send.writeObject(mres);
+
+            Mark res = StaticConnection.consultarMark(mark);
+            Object obje = Security.cifrarConClaveSimetrica(res, this.secretKey);
+            this.send.writeObject(obje);
+            this.send.flush();
         } catch (Exception ex) {
 
         }
@@ -209,10 +237,11 @@ public class ServerClient implements Runnable {
 
     public void getUsers() {
         try {
-            ArrayList<User> users = StaticConnection.usersList();
-            System.out.println(users.size());
-            this.send.writeObject(users);
-
+            ArrayList<User> res = StaticConnection.usersList();
+            System.out.println("Vector " + res.size());
+            Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+            this.send.writeObject(obj);
+            this.send.flush();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -220,8 +249,10 @@ public class ServerClient implements Runnable {
 
     public void getRoles() {
         try {
-            ArrayList<String> roles = StaticConnection.getRoles();
-            this.send.writeObject(roles);
+            ArrayList<String> res = StaticConnection.getRoles();
+            Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+            this.send.writeObject(obj);
+            this.send.flush();
             System.out.println("Roles Enviados");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -230,8 +261,10 @@ public class ServerClient implements Runnable {
 
     private void getGrades() {
         try {
-            ArrayList<Grade> grades = StaticConnection.getGrades();
-            this.send.writeObject(grades);
+            ArrayList<Grade> res = StaticConnection.getGrades();
+            Object obj = Security.cifrarConClaveSimetrica(res, this.secretKey);
+            this.send.writeObject(obj);
+            this.send.flush();
             System.out.println("Grades enviados");
         } catch (Exception ex) {
         }
@@ -242,9 +275,9 @@ public class ServerClient implements Runnable {
 
     private void getMyGrades() {
         try {
-            int id_user = (int) this.receive.readObject();
-            ArrayList<Grade> grades = StaticConnection.listarGradesProfesor(id_user);
-            this.send.writeObject(grades);
+            int id_user = (int) Security.descifrar(this.secretKey, this.receive.readObject());
+            ArrayList<Grade> res = StaticConnection.listarGradesProfesor(id_user);
+            this.send.writeObject(Security.cifrarConClaveSimetrica(res, this.secretKey));
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -253,11 +286,10 @@ public class ServerClient implements Runnable {
 
     private void getMyStudents() {
         try {
-            Object obj = this.receive.readObject();
+            Object obj = Security.descifrar(this.secretKey, this.receive.readObject());
             int grade = (int) obj;
-            ArrayList<Participante> students = StaticConnection.listarParticipantesCurso(grade);
-            this.send.writeObject(students);
-
+            ArrayList<Participante> res = StaticConnection.listarParticipantesCurso(grade);
+            this.send.writeObject(Security.cifrarConClaveSimetrica(res, this.secretKey));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -265,10 +297,10 @@ public class ServerClient implements Runnable {
 
     private void getMyTeachers() {
         try {
-            Object obj = this.receive.readObject();
+            Object obj = Security.descifrar(this.secretKey, this.receive.readObject());
             int id = (int) obj;
-            ArrayList<User> teachers = StaticConnection.listarProfesoresAlumno(id);
-            this.send.writeObject(teachers);
+            ArrayList<User> res = StaticConnection.listarProfesoresAlumno(id);
+            this.send.writeObject(Security.cifrarConClaveSimetrica(res, this.secretKey));
 
         } catch (Exception ex) {
             ex.printStackTrace();

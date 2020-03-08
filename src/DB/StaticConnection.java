@@ -9,6 +9,7 @@ import Models.Grade;
 import Models.Mark;
 import Models.Participante;
 import Models.User;
+import Server.Security;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class StaticConnection {
     public static User userLogin(String usuario, String password) {
         User user = new User();
         try {
-            String sentencia = "SELECT user.id, roles.id_rol FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE user.id=roles.id_usuario AND nombre = '" + usuario + "' AND password = '" + password + "'";
+            String sentencia = "SELECT user.id, roles.id_rol, user.clave FROM " + USER_TB + " user, " + ROLRELATION_TB + " roles WHERE user.id=roles.id_usuario AND nombre = '" + usuario + "' AND password = '" + password + "'";
             StaticConnection.Conn_Records = StaticConnection.SQL_Statement.executeQuery(sentencia);
 
             if (StaticConnection.Conn_Records.next())//Si devuelve true es que existe.
@@ -74,6 +75,7 @@ public class StaticConnection {
 
                 user.setId(Conn_Records.getInt(1));
                 user.setRol((byte) Conn_Records.getInt(2));
+                user.setSecretKey(Security.recomponerClave(Conn_Records.getBytes(3)));
 
                 return user;
             } else {
@@ -102,6 +104,7 @@ public class StaticConnection {
     public static synchronized boolean userRegiser(User user) {
         try {
             if (!userExist(user.getName())) {
+                user.setSecretKey(Security.generarClaveSimetrica());
                 InsertUser(user);
                 return true;
             }
@@ -235,12 +238,22 @@ public class StaticConnection {
 
     //----------------------------------------------------------
     public synchronized static void InsertUser(User user) throws SQLException {
-        String Sentencia = "INSERT INTO " + USER_TB + "(nombre, password, telefono, direccion, edad)"
-                + " VALUES ('" + user.getName() + "', '" + user.getPwd() + "','" + user.getPhoneNumber() + "', '" + user.getAddress() + "', " + user.getAge() + ")";
-        StaticConnection.SQL_Statement.executeUpdate(Sentencia);
-        int id = getUserId(user.getName());
-        Sentencia = "INSERT INTO " + ROLRELATION_TB + " (id_rol, id_usuario) VALUES(0," + id + ")";
-        StaticConnection.SQL_Statement.executeUpdate(Sentencia);
+        String Sentencia = "INSERT INTO " + USER_TB + "(nombre, password, telefono, direccion, edad, clave)"
+                + " VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement ps = Conn.prepareStatement(Sentencia);
+        ps.setString(1, user.getName());
+        ps.setString(2, user.getPwd());
+        ps.setString(3, user.getPhoneNumber());
+        ps.setString(4, user.getAddress());
+        ps.setInt(5, user.getAge());
+        ps.setBytes(6, user.getSecretKey().getEncoded());
+        int rowaff = ps.executeUpdate();
+        if (rowaff > 0) {
+            int id = getUserId(user.getName());
+            System.out.println(id);
+            Sentencia = "INSERT INTO " + ROLRELATION_TB + " (id_rol, id_usuario) VALUES(0," + id + ")";
+            StaticConnection.SQL_Statement.executeUpdate(Sentencia);
+        }
     }
 
     public static ArrayList<String> getRoles() {

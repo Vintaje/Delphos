@@ -16,6 +16,7 @@ public class Mark implements Serializable{
     private int cod_student;
     private int cod_teacher;
     private float mark;
+    private byte[] signature;
 
     public Mark(int id, int cod_student, int cod_teacher, float mark) {
         this.id = id;
@@ -24,6 +25,24 @@ public class Mark implements Serializable{
         this.mark = mark;
     }
 
+    public Mark(int id, int cod_student, int cod_teacher, float mark, byte[] signature) {
+        this.id = id;
+        this.cod_student = cod_student;
+        this.cod_teacher = cod_teacher;
+        this.mark = mark;
+        this.signature = signature;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public void setSignature(byte[] signature) {
+        this.signature = signature;
+    }
+
+    
+    
     public Mark() {
     }
 

@@ -6,6 +6,7 @@
 package Models;
 
 import java.io.Serializable;
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -20,6 +21,8 @@ public class User implements Serializable {
     private String address;
     private int age;
     private byte rol;
+    private SecretKey secretKey;
+    
 
     public User() {
     }
@@ -46,6 +49,27 @@ public class User implements Serializable {
         this.address = address;
         this.age = age;
     }
+
+    public User(int id, String name, String pwd, String phoneNumber, String address, int age, byte rol, SecretKey secretKey) {
+        this.id = id;
+        this.name = name;
+        this.pwd = pwd;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+        this.age = age;
+        this.rol = rol;
+        this.secretKey = secretKey;
+    }
+
+    public SecretKey getSecretKey() {
+        return secretKey;
+    }
+
+    public void setSecretKey(SecretKey secretKey) {
+        this.secretKey = secretKey;
+    }
+    
+    
 
     @Override
     public String toString() {
