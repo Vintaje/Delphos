@@ -11,5 +11,6 @@ package Constant;
  */
 public class ServerCst {
     public final static int PORT = 5000;
+    public final static int WEB_PORT = 8000;
     
 }

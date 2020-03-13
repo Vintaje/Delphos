@@ -6,6 +6,7 @@
 package delphos;
 
 import Server.Servidor;
+import Server.WebService;
 
 /**
  *
@@ -20,6 +21,7 @@ public class Delphos {
     public static void main(String[] args) {
         // TODO code application logic here
         new Servidor().start();
+        new WebService().start();
     }
     
     

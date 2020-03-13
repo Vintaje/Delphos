@@ -370,4 +370,22 @@ public class StaticConnection {
         }
         return aux;
     }
+    
+    public static ArrayList<String[]> consultarNotas(){
+        String sql = "SELECT u.nombre, n.nota FROM usuarios u, notas n WHERE u.id = n.cod_alumno";
+        
+        ArrayList<String[]> res = new ArrayList<>();
+        try{
+            Conn_Records = SQL_Statement.executeQuery(sql);
+            while(Conn_Records.next()){
+                res.add(new String[]{Conn_Records.getString(1), Float.toString(Conn_Records.getFloat(2))});
+            }
+        
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        
+        
+        return res;
+    }
 }
