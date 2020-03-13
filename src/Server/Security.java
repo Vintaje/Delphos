@@ -33,7 +33,8 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class Security {
 
-    public static PublicKey publicaServidor;
+    public static PublicKey publicaFirma;
+    public static PrivateKey privadaFirma;
 
     public static SecretKey recomponerClave(byte[] clave) {
         SecretKey res = new SecretKeySpec(clave, 0, clave.length, "AES");
@@ -83,17 +84,19 @@ public class Security {
             SecureRandom numero = SecureRandom.getInstance("SHA1PRNG");
             keyGen.initialize(1024, numero);
             par = keyGen.generateKeyPair();
+            publicaFirma = par.getPublic();
+            privadaFirma = par.getPrivate();
         } catch (NoSuchAlgorithmException e) {
             System.out.println(e.getMessage());
         }
         return par;
     }
 
-    public static byte[] firmar(String mensaje, PrivateKey clavepriv) throws InvalidKeyException, SignatureException {
+    public static byte[] firmar(String mensaje) throws InvalidKeyException, SignatureException {
         byte[] firma = null;
         try {
             Signature dsa = Signature.getInstance("SHA1withDSA");
-            dsa.initSign(clavepriv);
+            dsa.initSign(privadaFirma);
             dsa.update(mensaje.getBytes());
             firma = dsa.sign();
         } catch (NoSuchAlgorithmException | SignatureException ex) {
@@ -106,7 +109,7 @@ public class Security {
         boolean valido = false;
         try {
             Signature verifica = Signature.getInstance("SHA1withDSA");
-            verifica.initVerify(publicaServidor);
+            verifica.initVerify(publicaFirma);
             verifica.update(String.valueOf(nota.getMark()).getBytes());
             valido = verifica.verify(nota.getSignature());
         } catch (InvalidKeyException | NoSuchAlgorithmException e) {

@@ -362,7 +362,7 @@ public class StaticConnection {
                 aux.setId(Conn_Records.getInt(1));
                 aux.setCod_student(Conn_Records.getInt(2));
                 aux.setCod_teacher(Conn_Records.getInt(3));
-                aux.setMark(Conn_Records.getFloat(4));
+                aux.setMark(Float.toString(Conn_Records.getFloat(4)));
 
             }
         } catch (SQLException e) {

@@ -29,7 +29,7 @@ public class Servidor implements Runnable {
 
     @Override
     public void run() {
-
+        Security.generarClaves();
         try {
             this.ssocket = new ServerSocket(ServerCst.PORT);
             StaticConnection.nueva();

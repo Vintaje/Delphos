@@ -15,17 +15,17 @@ public class Mark implements Serializable{
     private int id;
     private int cod_student;
     private int cod_teacher;
-    private float mark;
+    private String mark;
     private byte[] signature;
 
-    public Mark(int id, int cod_student, int cod_teacher, float mark) {
+    public Mark(int id, int cod_student, int cod_teacher, String mark) {
         this.id = id;
         this.cod_student = cod_student;
         this.cod_teacher = cod_teacher;
         this.mark = mark;
     }
 
-    public Mark(int id, int cod_student, int cod_teacher, float mark, byte[] signature) {
+    public Mark(int id, int cod_student, int cod_teacher, String mark, byte[] signature) {
         this.id = id;
         this.cod_student = cod_student;
         this.cod_teacher = cod_teacher;
@@ -70,11 +70,11 @@ public class Mark implements Serializable{
         this.cod_teacher = cod_teacher;
     }
 
-    public float getMark() {
+    public String getMark() {
         return mark;
     }
 
-    public void setMark(float mark) {
+    public void setMark(String mark) {
         this.mark = mark;
     }
     

@@ -153,10 +153,7 @@ public class ServerClient implements Runnable {
     public void login() throws IOException, ClassNotFoundException {
 
         User user = (User) this.receive.readObject();
-
-        System.out.println(user);
         User response = StaticConnection.userLogin(user.getName(), user.getPwd());
-        System.out.println(response.getSecretKey());
         if (response.getRol() != -1) {
             this.secretKey = response.getSecretKey();
         }
@@ -164,6 +161,7 @@ public class ServerClient implements Runnable {
         this.send.writeObject(response);
         System.out.println(response);
         this.send.flush();
+        this.send.writeObject(Security.publicaFirma);
     }
 
     public void activateUser() throws IOException, ClassNotFoundException, SQLException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException {
@@ -225,8 +223,9 @@ public class ServerClient implements Runnable {
         try {
             Object obj = Security.descifrar(this.secretKey, this.receive.readObject());
             Mark mark = (Mark) obj;
-
+            
             Mark res = StaticConnection.consultarMark(mark);
+            res.setSignature(Security.firmar(res.getMark()));
             Object obje = Security.cifrarConClaveSimetrica(res, this.secretKey);
             this.send.writeObject(obje);
             this.send.flush();
